@@ -1,61 +1,66 @@
-console.log("Chrome extenstion ready to go.");
+const getSidebar = () => {
+  let sidebar = document.querySelector("#sections");
+  let otherSidebar = document.querySelector("ytd-mini-guide-renderer");
+  return [sidebar, otherSidebar];
+};
 
-const getRecommendations = () => {
-  return document.querySelector("#secondary-inner");
+const getHomeRecommendations = () => {
+  return [document.querySelector("#primary")];
+};
+
+const getVideoRecommendations = () => {
+  const bigScreen = document.querySelector("#secondary-inner");
+  const smallScreen = document.querySelector("#related");
+  return [bigScreen, smallScreen];
 };
 const getComments = () => {
-  return document.querySelector("#comments");
+  return [document.querySelector("#comments")];
 };
-const getRelated = () => {
-  return document.querySelector("#related");
+
+const changeDisplay = (arr, saved) => {
+  if (saved) {
+    arr.forEach((x) => {
+      if (x && x.style) {
+        x.style["display"] = "block";
+      }
+    });
+  } else {
+    arr.forEach((x) => {
+      if (x && x.style) {
+        x.style["display"] = "none";
+      }
+    });
+  }
 };
 
 chrome.storage.sync.get(
-  ["video_recommendations", "video_comments"],
+  [
+    "homepage_recommendations",
+    "homepage_sidebar",
+    "video_recommendations",
+    "video_comments",
+  ],
   (result) => {
-    let recommendations = getRecommendations();
-    let comments = getComments();
-    let related = getRelated();
-    if (Object.keys(result).length < 2) {
-      recommendations.style["visibility"] = "hidden";
-      comments.style["visibility"] = "hidden";
-      related.style["visibility"] = "hidden";
-      chrome.storage.sync.set({
-        video_recommendations: false,
-        video_comments: false,
-      });
-    } else {
-      if (result.video_recommendations === false) {
-        related.style["visibility"] = "hidden";
-        recommendations.style["visibility"] = "hidden";
-      }
-      if (result.video_comments === false) {
-        comments.style["visibility"] = "hidden";
-      }
-    }
+    changeDisplay(getSidebar(), result.homepage_sidebar);
+    changeDisplay(getHomeRecommendations(), result.homepage_recommendations);
+    changeDisplay(getVideoRecommendations(), result.video_recommendations);
+    changeDisplay(getComments(), result.video_comments);
   }
 );
 
 chrome.runtime.onMessage.addListener(gotMessage);
 function gotMessage(message, sender, sendResponse) {
   console.log(message);
+  if (message.action === "display-recommendations") {
+    changeDisplay(getHomeRecommendations(), message.value);
+  }
+  if (message.action === "display-sidebar") {
+    changeDisplay(getSidebar(), message.value);
+  }
   if (message.action === "display-video-recommendations") {
-    let recommendations = getRecommendations();
-    let related = getRelated();
-    if (message.value) {
-      recommendations.style["visibility"] = "visible";
-      related.style["visibility"] = "visible";
-    } else {
-      recommendations.style["visibility"] = "hidden";
-      related.style["visibility"] = "hidden";
-    }
+    changeDisplay(getVideoRecommendations(), message.value);
   }
   if (message.action === "display-video-comments") {
-    let comments = getComments();
-    if (message.value) {
-      comments.style["visibility"] = "visible";
-    } else {
-      comments.style["visibility"] = "hidden";
-    }
+    changeDisplay(getComments(), message.value);
   }
 }

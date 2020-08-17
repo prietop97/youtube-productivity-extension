@@ -1,20 +1,23 @@
 {
   "manifest_version": 2,
-  "name": "Youtube Prod",
+  "name": "YouProd",
   "version": "1.0",
+  "description": "Increase productivity and decrease distractions by hiding Youtube recommendations and comments.",
+  "icons": { "128": "logo.png" },
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/watch?*"],
+      "matches": [
+        "https://www.youtube.com/watch?*",
+        "https://www.youtube.com/",
+        "https://www.youtube.com/?*"
+      ],
       "js": ["content.js"]
-    },
-    {
-      "matches": ["https://www.youtube.com/"],
-      "js": ["homepage.js"]
     }
   ],
   "permissions": ["storage", "tabs"],
   "browser_action": {
     "default_title": "Youtube Distractions",
+    "default_licon": "logo150.png",
     "default_popup": "popup/index.html"
   },
   "background": {
